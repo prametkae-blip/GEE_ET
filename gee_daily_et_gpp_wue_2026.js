@@ -55,7 +55,9 @@ var gpp_composite = gpp_daily.median();
 // ===== WATER USE EFFICIENCY (WUE) =====
 // WUE = GPP / ET (g C / kg H2O)
 // To make WUE comparable: normalize to reasonable range
-var wue_composite = gpp_composite.divide(et_composite.add(0.1)) // Avoid division by zero
+var et_band = et_composite.select('ET');
+var gpp_band = gpp_composite.select('GPP');
+var wue_composite = gpp_band.divide(et_band.add(0.1)) // Avoid division by zero
   .multiply(100) // Scale for visibility
   .rename('WUE');
 
