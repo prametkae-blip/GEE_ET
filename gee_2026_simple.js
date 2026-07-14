@@ -59,20 +59,15 @@ var etLatestDate = etLatest.get('system:time_start');
 // Get latest GPP
 var gppLatest = gpp.sort('system:time_start', false).first();
 
-// Combine
-var combined = ee.Image.cat([
-  etLatest.clip(roi).reproject({crs: OUTPUT_CRS, scale: OUTPUT_SCALE}),
-  gppLatest.clip(roi).reproject({crs: OUTPUT_CRS, scale: OUTPUT_SCALE})
-]);
+// Combine (no clip, use data as-is)
+var etReprojected = etLatest.reproject({crs: OUTPUT_CRS, scale: OUTPUT_SCALE});
+var gppReprojected = gppLatest.reproject({crs: OUTPUT_CRS, scale: OUTPUT_SCALE});
 
-var vis = {
-  bands: ['ET_mm', 'GPP_gC_m2'],
-  min: [0, 0],
-  max: [20, 800]
-};
+var combined = ee.Image.cat([etReprojected, gppReprojected]);
 
-Map.addLayer(etLatest.clip(roi).visualize({min: 0, max: 20, palette: ['fff7fb','ece7f2','d0d1e6','a6bddb','74a9cf','3690c0','0570b0','045a8d']}), {}, 'Latest ET');
-Map.addLayer(gppLatest.clip(roi).visualize({min: 0, max: 1000, palette: ['ffffe5','f7fcb9','d9f0a3','addd8e','78c679','41ab5d','238443','006837']}), {opacity: 0.7}, 'Latest GPP');
+// Display on map
+Map.addLayer(etLatest.visualize({min: 0, max: 20, palette: ['fff7fb','ece7f2','d0d1e6','a6bddb','74a9cf','3690c0','0570b0','045a8d']}), {}, 'Latest ET');
+Map.addLayer(gppLatest.visualize({min: 0, max: 1000, palette: ['ffffe5','f7fcb9','d9f0a3','addd8e','78c679','41ab5d','238443','006837']}), {opacity: 0.7}, 'Latest GPP');
 
 // ============================================================================
 // MONTHLY SUMMARIES
@@ -101,7 +96,7 @@ print('Monthly summaries created:', ee.List(monthlySummaries).size());
 
 // Export latest month
 Export.image.toDrive({
-  image: combined,
+  image: combined.clip(roi),
   description: 'Thailand_ET_GPP_2026_Latest',
   folder: 'GEE_ET',
   fileNamePrefix: 'Thailand_2026_Latest',
@@ -113,23 +108,23 @@ Export.image.toDrive({
 });
 
 // Export each month
-months.evaluate(function(monthList) {
-  monthList.forEach(function(m, i) {
-    var summary = ee.Image(ee.List(monthlySummaries).get(i));
-    var monthName = summary.get('monthName');
+months.map(function(m) {
+  var i = ee.Number(m).subtract(1);
+  var summary = ee.Image(ee.List(monthlySummaries).get(i));
 
-    Export.image.toDrive({
-      image: summary.clip(roi).reproject({crs: OUTPUT_CRS, scale: OUTPUT_SCALE}),
-      description: 'Thailand_2026_Month_' + (m < 10 ? '0' + m : m),
-      folder: 'GEE_ET',
-      fileNamePrefix: 'Thailand_2026_' + (m < 10 ? '0' + m : m),
-      region: roi,
-      crs: OUTPUT_CRS,
-      scale: OUTPUT_SCALE,
-      maxPixels: 1e13,
-      fileFormat: 'GeoTIFF'
-    });
+  Export.image.toDrive({
+    image: summary.reproject({crs: OUTPUT_CRS, scale: OUTPUT_SCALE}).clip(roi),
+    description: 'Thailand_2026_Month_' + (m < 10 ? '0' + m : m),
+    folder: 'GEE_ET',
+    fileNamePrefix: 'Thailand_2026_' + (m < 10 ? '0' + m : m),
+    region: roi,
+    crs: OUTPUT_CRS,
+    scale: OUTPUT_SCALE,
+    maxPixels: 1e13,
+    fileFormat: 'GeoTIFF'
   });
+
+  return null;
 });
 
 // ============================================================================
