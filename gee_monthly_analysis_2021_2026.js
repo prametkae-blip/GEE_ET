@@ -99,9 +99,9 @@ function calculateWUE(etImage, gppImage) {
     .updateMask(etImage.gt(0.1))
     .rename('WUE_gC_kg');
 
-  var date = ee.Date(etImage.get('system:time_start'));
+  var timeStart = etImage.get('system:time_start');
   return wue.set({
-    'system:time_start': date.millis(),
+    'system:time_start': timeStart,
     'date': etImage.get('date'),
     'year': etImage.get('year'),
     'month': etImage.get('month'),
@@ -111,12 +111,13 @@ function calculateWUE(etImage, gppImage) {
 
 // Match ET and GPP by date and create combined dataset
 var monthlyData = etCollection.map(function(etImg) {
-  var date = ee.Date(etImg.get('system:time_start'));
+  var timeStart = etImg.get('system:time_start');
+  var date = ee.Date(timeStart);
   var gppImg = gppCollection.filterDate(date, date.advance(1, 'day')).first();
 
   var combined = ee.Image.cat([etImg, gppImg])
     .set({
-      'system:time_start': date.millis(),
+      'system:time_start': timeStart,
       'date': etImg.get('date'),
       'year': etImg.get('year'),
       'month': etImg.get('month'),
