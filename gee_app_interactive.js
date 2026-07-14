@@ -106,7 +106,7 @@ function prepareMODISET(image) {
 
   return etDaily1km.set({
     'system:time_start': compositeStart.millis(),
-    composite_start': compositeStart.format('YYYY-MM-dd'),
+    'composite_start': compositeStart.format('YYYY-MM-dd'),
     'composite_end': compositeEnd.format('YYYY-MM-dd'),
     'composite_days': compositeDays
   });
