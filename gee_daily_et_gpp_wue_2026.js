@@ -15,7 +15,7 @@ var OUTPUT_CRS = 'EPSG:3857';
 var OUTPUT_SCALE = 1000;
 var OUTPUT_PROJECTION = ee.Projection(OUTPUT_CRS).atScale(OUTPUT_SCALE);
 
-var TOTAL_TRAINING_SAMPLES = 30000;  // Reduced for efficiency
+var TOTAL_TRAINING_SAMPLES = 100;  // Minimal samples for quick test
 var RANDOM_SEED = 42;
 var MIN_ET_FOR_WUE = 0.05;
 var CREATE_DAILY_EXPORTS = false;
