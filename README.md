@@ -1,4 +1,4 @@
-# GEE_ET — Daily Evapotranspiration, GPP & Water Use Efficiency for Thailand (2026 Jan-Jun)
+# GEE_ET — Daily Evapotranspiration, GPP & Water Use Efficiency for Thailand (2026 January)
 
 Interactive web maps showing **daily Evapotranspiration (ET)**, **Gross Primary Productivity (GPP)**, and **Water Use Efficiency (WUE)** for Thailand powered by **Google Earth Engine** and **Leaflet.js**.
 
@@ -6,7 +6,7 @@ Interactive web maps showing **daily Evapotranspiration (ET)**, **Gross Primary 
 
 ## 🚀 Quick Links
 
-### Daily Maps (Jan-Jun 2026)
+### Daily Maps (January 2026)
 - **[💧 View ET Map](https://prametkae-blip.github.io/GEE_ET/ET.html)** — Evapotranspiration (0-8 mm/day)
 - **[🌱 View GPP Map](https://prametkae-blip.github.io/GEE_ET/GPP.html)** — Gross Primary Productivity (0-0.5 g C/m²/day)
 - **[💧 View WUE Map](https://prametkae-blip.github.io/GEE_ET/WUE.html)** — Water Use Efficiency (GPP/ET)
@@ -21,7 +21,7 @@ Interactive web maps showing **daily Evapotranspiration (ET)**, **Gross Primary 
   - **ET**: ERA5 daily climate data
   - **GPP**: MODIS NPP vegetation index
   - **WUE**: Calculated efficiency (GPP/ET)
-- 📅 **Daily Data**: Jan 1 – Jun 30, 2026
+- 📅 **Daily Data**: Jan 1 – Jan 31, 2026
 - 🗺️ **Interactive Maps**: Leaflet viewer with Google Satellite basemap
 - 🔊 **Layer Toggle**: Switch between base and overlay
 - 🎚️ **Opacity Slider**: Adjust layer transparency
@@ -94,14 +94,14 @@ GEE_ET/
 - **Unit**: mm/day
 - **Range**: 0-8 mm/day
 - **Processing**: Daily average from climate data
-- **Period**: 2026-01-01 to 2026-06-30
+- **Period**: 2026-01-01 to 2026-01-31
 
 ### Gross Primary Productivity (GPP)
-- **Source**: MODIS MOD17A2H
+- **Source**: MODIS MOD17A2HGF
 - **Unit**: g C/m²/day
 - **Range**: 0-0.5 g C/m²/day
 - **Processing**: Daily average from 8-day composite
-- **Period**: 2026-01-01 to 2026-06-30
+- **Period**: 2026-01-01 to 2026-01-31
 
 ### Water Use Efficiency (WUE)
 - **Formula**: WUE = GPP / ET
@@ -124,7 +124,7 @@ Runs in your authenticated Google Earth Engine account:
 
 2. **Spatial Filter**: Thailand (FAO/GAUL)
 
-3. **Temporal Filter**: Jan 1 – Jun 30, 2026
+3. **Temporal Filter**: Jan 1 – Jan 31, 2026
 
 4. **Processing**:
    - ET: Direct from ERA5 latent heat flux

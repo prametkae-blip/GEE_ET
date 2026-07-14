@@ -9,7 +9,7 @@
 var TRAIN_START = ee.Date('2025-01-01');
 var TRAIN_END   = ee.Date('2026-01-01');
 var PREDICT_START = ee.Date('2026-01-01');
-var PREDICT_END = ee.Date('2026-06-01');
+var PREDICT_END = ee.Date('2026-02-01');  // January only
 
 var OUTPUT_CRS = 'EPSG:3857';
 var OUTPUT_SCALE = 1000;
@@ -260,28 +260,28 @@ function predictDaily2026(image) {
 var dailyPredictions2026 = era5Predict2026.map(predictDaily2026).sort('system:time_start');
 print('Daily predictions:', dailyPredictions2026.size());
 
-// Jan-May summary
-var etJanMay = dailyPredictions2026.select('ET_daily_mm').sum().rename('ET_JanMay_mm');
-var gppJanMay = dailyPredictions2026.select('GPP_daily_gC_m2').sum().rename('GPP_JanMay_gC_m2');
-var wueJanMay = gppJanMay.divide(etJanMay).updateMask(etJanMay.gt(1)).rename('WUE_JanMay_gC_kgH2O');
+// January summary
+var etJanuary = dailyPredictions2026.select('ET_daily_mm').sum().rename('ET_January_mm');
+var gppJanuary = dailyPredictions2026.select('GPP_daily_gC_m2').sum().rename('GPP_January_gC_m2');
+var wueJanuary = gppJanuary.divide(etJanuary).updateMask(etJanuary.gt(1)).rename('WUE_January_gC_kgH2O');
 
-var summaryJanMay = ee.Image.cat([etJanMay, gppJanMay, wueJanMay]).toFloat();
+var summaryJanuary = ee.Image.cat([etJanuary, gppJanuary, wueJanuary]).toFloat();
 
 // Visualization
 var etVis = {min: 0, max: 700, palette: ['fff7fb', 'ece7f2', 'd0d1e6', 'a6bddb', '74a9cf', '3690c0', '0570b0', '045a8d']};
 var gppVis = {min: 0, max: 1200, palette: ['ffffe5', 'f7fcb9', 'd9f0a3', 'addd8e', '78c679', '41ab5d', '238443', '006837']};
 var wueVis = {min: 0, max: 4, palette: ['8c510a', 'd8b365', 'f6e8c3', 'f5f5f5', 'c7eae5', '5ab4ac', '01665e']};
 
-Map.addLayer(etJanMay, etVis, 'ET Jan-May 2026');
-Map.addLayer(gppJanMay, gppVis, 'GPP Jan-May 2026');
-Map.addLayer(wueJanMay, wueVis, 'WUE Jan-May 2026');
+Map.addLayer(etJanuary, etVis, 'ET January 2026');
+Map.addLayer(gppJanuary, gppVis, 'GPP January 2026');
+Map.addLayer(wueJanuary, wueVis, 'WUE January 2026');
 
 // Export summary
 Export.image.toDrive({
-  image: summaryJanMay,
-  description: 'Thailand_ET_GPP_WUE_1km_2026_JanMay',
+  image: summaryJanuary,
+  description: 'Thailand_ET_GPP_WUE_1km_2026_January',
   folder: 'GEE_ET_GPP_WUE',
-  fileNamePrefix: 'Thailand_ET_GPP_WUE_JanMay',
+  fileNamePrefix: 'Thailand_ET_GPP_WUE_January',
   region: roi,
   crs: OUTPUT_CRS,
   scale: OUTPUT_SCALE,

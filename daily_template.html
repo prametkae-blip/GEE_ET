@@ -197,7 +197,7 @@
     };
 
     let currentDate = new Date(2026, 0, 1);  // Jan 1, 2026
-    const maxDate = new Date(2026, 4, 31);   // May 31, 2026
+    const maxDate = new Date(2026, 0, 31);   // Jan 31, 2026
 
     function formatDate(date) {
       const year = date.getFullYear();
@@ -222,7 +222,7 @@
         typeof data.wue === 'number' ? data.wue.toFixed(2) : data.wue;
 
       document.querySelector('button:nth-child(1)').disabled = formatDate(currentDate) <= '2026-01-01';
-      document.querySelector('button:nth-child(3)').disabled = formatDate(currentDate) >= '2026-05-31';
+      document.querySelector('button:nth-child(3)').disabled = formatDate(currentDate) >= '2026-01-31';
     }
 
     function previousDay() {
