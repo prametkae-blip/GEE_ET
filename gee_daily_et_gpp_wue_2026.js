@@ -7,7 +7,7 @@
 // ============================================================================
 
 var TRAIN_START = ee.Date('2025-01-01');
-var TRAIN_END   = ee.Date('2026-01-01');
+var TRAIN_END   = ee.Date('2025-01-31');  // January 2025 only
 var PREDICT_START = ee.Date('2026-01-01');
 var PREDICT_END = ee.Date('2026-02-01');  // January only
 
