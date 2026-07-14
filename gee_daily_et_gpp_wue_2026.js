@@ -276,6 +276,20 @@ Map.addLayer(etJanuary, etVis, 'ET January 2026');
 Map.addLayer(gppJanuary, gppVis, 'GPP January 2026');
 Map.addLayer(wueJanuary, wueVis, 'WUE January 2026');
 
+// Generate tile URLs for Leaflet maps
+var etImage = dailyPredictions2026.select('ET_daily_mm').mean().visualize(etVis);
+var gppImage = dailyPredictions2026.select('GPP_daily_gC_m2').mean().visualize(gppVis);
+var wueImage = dailyPredictions2026.select('WUE_gC_kgH2O').mean().visualize(wueVis);
+
+var etTiles = etImage.getMapId(etVis);
+print('ET URL:', etTiles.urlFormat);
+
+var gppTiles = gppImage.getMapId(gppVis);
+print('GPP URL:', gppTiles.urlFormat);
+
+var wueTiles = wueImage.getMapId(wueVis);
+print('WUE URL:', wueTiles.urlFormat);
+
 // Export summary
 Export.image.toDrive({
   image: summaryJanuary,
