@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ET Map — Thailand 2026</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: white;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .header h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    .header p {
+      color: #666;
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      background: #0570b0;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      max-width: 1400px;
+      margin: 20px auto;
+      width: 100%;
+      gap: 20px;
+      padding: 0 20px;
+    }
+    #map {
+      flex: 1;
+      min-height: 600px;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      background: #f0f0f0;
+    }
+    .sidebar {
+      width: 300px;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      max-height: calc(100vh - 200px);
+    }
+    .sidebar h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+      border-bottom: 2px solid #0570b0;
+      padding-bottom: 10px;
+    }
+    .control-group {
+      margin-bottom: 20px;
+    }
+    .control-label {
+      font-weight: bold;
+      color: #0570b0;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #ddd;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0570b0;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0570b0;
+      cursor: pointer;
+      border: none;
+    }
+    .opacity-value {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+      text-align: center;
+    }
+    .legend {
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 12px;
+    }
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .legend-bar {
+      height: 25px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      background: linear-gradient(to right, #fff7fb, #ece7f2, #d0d1e6, #a6bddb, #74a9cf, #3690c0, #0570b0, #045a8d);
+    }
+    .legend-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #666;
+    }
+    .stats {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 13px;
+    }
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+    .stat-label {
+      color: #666;
+    }
+    .stat-value {
+      font-weight: bold;
+      color: #0570b0;
+    }
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #0570b0;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .footer {
+      background: white;
+      padding: 15px 20px;
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+      margin-top: auto;
+    }
+    .footer a {
+      color: #0570b0;
+      text-decoration: none;
+    }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .sidebar { width: 100%; }
+      #map { min-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💧 Evapotranspiration (ET)</h1>
+    <p>Real MODIS Data from Google Earth Engine</p>
+    <span class="badge">Thailand 2026</span>
+  </div>
+
+  <div class="container">
+    <div id="map"></div>
+    <div class="sidebar">
+      <h2>💧 ET Map</h2>
+
+      <div class="control-group">
+        <label class="control-label">Layer Opacity</label>
+        <input type="range" id="opacitySlider" min="0" max="100" value="80" />
+        <div class="opacity-value">
+          <span id="opacityValue">80</span>%
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-title">ET (mm per 8-day)</div>
+        <div class="legend-bar"></div>
+        <div class="legend-range">
+          <span>0 mm</span>
+          <span>20+ mm</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">Data Source:</span>
+          <span class="stat-value">MODIS MOD16A2</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Resolution:</span>
+          <span class="stat-value">500m native</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Period:</span>
+          <span class="stat-value">2026 (Jan-May)</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Unit:</span>
+          <span class="stat-value">mm/period</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Quality:</span>
+          <span class="stat-value">QC=0 only</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>📝 About ET:</strong><br>
+        Evapotranspiration (ET) is water evaporated from soil and plants. Higher values (red) indicate more water loss, typical in tropical regions during rainy season.
+      </div>
+
+      <div class="info-box">
+        <strong>🔗 How to use:</strong><br>
+        1. Copy tile URL from GEE console<br>
+        2. Paste in code below<br>
+        3. Zoom/pan map<br>
+        4. Adjust opacity slider
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>
+      <strong>GEE_ET Viewer</strong> | MODIS ET Data | <a href="https://github.com/prametkae-blip/GEE_ET" target="_blank">GitHub</a>
+    </p>
+  </div>
+
+  <script>
+    // ============================================
+    // PASTE YOUR TILE URL HERE ⬇️
+    // ============================================
+    const ET_TILE_URL = 'https://earthengine.googleapis.com/v1/projects/ee-prametkae/maps/fc895afd1ec242fe95c17ffd62d3a5b2-2224898a1ae572d8476c8f037a06ca6a/tiles/{z}/{x}/{y}';
+    // ============================================
+
+    let map;
+    let etLayer;
+
+    function initMap() {
+      // Create map centered on Thailand
+      map = L.map('map').setView([15.87, 100.99], 6);
+
+      // Add Google Satellite basemap
+      const baseLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        minZoom: 2,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '© Google'
+      }).addTo(map);
+
+      // Add ET layer
+      etLayer = L.tileLayer(ET_TILE_URL, {
+        maxZoom: 14,
+        minZoom: 2,
+        opacity: 0.8,
+        attribution: '© Google Earth Engine'
+      }).addTo(map);
+
+      // Add layer control
+      L.control.layers(
+        { 'Google Satellite': baseLayer },
+        { 'ET Layer': etLayer },
+        { position: 'topright' }
+      ).addTo(map);
+
+      // Opacity slider
+      document.getElementById('opacitySlider').addEventListener('input', function(e) {
+        etLayer.setOpacity(e.target.value / 100);
+        document.getElementById('opacityValue').textContent = e.target.value;
+      });
+
+      // Add Thailand boundary (simple circle)
+      L.circle([15.87, 100.99], {
+        radius: 220000,
+        color: '#FF6B6B',
+        fill: false,
+        weight: 2,
+        dashArray: '5,5',
+        opacity: 0.7
+      }).addTo(map).bindPopup('Thailand');
+    }
+
+    // Initialize on load
+    window.addEventListener('load', initMap);
+  </script>
+</body>
+</html>
