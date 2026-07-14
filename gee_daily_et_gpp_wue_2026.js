@@ -20,41 +20,29 @@ var endDate = '2026-06-30';
 
 // ===== EVAPOTRANSPIRATION (ET) =====
 // Using ERA5 latent heat flux to estimate ET
-var era5 = ee.ImageCollection('ECMWF/ERA5/DAILY')
+var et_composite = ee.ImageCollection('ECMWF/ERA5/DAILY')
   .filterBounds(thailand)
   .filterDate(startDate, endDate)
-  .select('total_evaporation'); // kg/m² (convert to mm)
-
-// Calculate daily ET (latent heat = 2.45 MJ/kg, so ET_mm ≈ LE * 0.408)
-var et_daily = era5.map(function(image) {
-  return image.multiply(1000) // Convert kg/m² to mm
-    .clip(thailand);
-});
-
-// Get latest ET composite (or median if needed)
-var et_composite = et_daily.median().rename('ET');
+  .select('total_evaporation')
+  .map(function(img) { return img.multiply(1000).clip(thailand); })
+  .median()
+  .rename('ET');
 
 // ===== GROSS PRIMARY PRODUCTIVITY (GPP) =====
-// Using MODIS NPP as proxy for GPP (GPP ≈ NPP / 0.5 approximately)
-var modis_npp = ee.ImageCollection('MODIS/006/MOD17A2H')
+// Using MODIS NPP as proxy for GPP
+var gpp_composite = ee.ImageCollection('MODIS/006/MOD17A2H')
   .filterBounds(thailand)
   .filterDate(startDate, endDate)
-  .select('Gpp'); // GPP in kg C/m²/8days
-
-// Convert to daily average (divide by 8)
-var gpp_daily = modis_npp.map(function(image) {
-  return image.multiply(0.0001) // Scale factor
-    .divide(8) // 8-day to daily
-    .clip(thailand);
-});
-
-var gpp_composite = gpp_daily.median().rename('GPP');
+  .select('Gpp')
+  .map(function(img) { return img.multiply(0.0001).divide(8).clip(thailand); })
+  .median()
+  .rename('GPP');
 
 // ===== WATER USE EFFICIENCY (WUE) =====
-// WUE = GPP / ET (g C / kg H2O)
-// To make WUE comparable: normalize to reasonable range
-var wue_composite = gpp_composite.divide(et_composite.add(0.1)) // Avoid division by zero
-  .multiply(100) // Scale for visibility
+// WUE = GPP / (ET + 0.1) to avoid division by zero
+var et_safe = et_composite.add(0.1);
+var wue_composite = gpp_composite.divide(et_safe)
+  .multiply(100)
   .rename('WUE');
 
 // ===== VISUALIZATIONS =====
