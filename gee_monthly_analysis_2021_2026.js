@@ -49,7 +49,8 @@ function processET(image) {
 var etCollection = mod16.map(processET);
 
 print('MOD16A2 ET composites:', etCollection.size());
-print('ET date range:', etCollection.first().get('date'), 'to', etCollection.last().get('date'));
+var etLast = etCollection.sort('system:time_start', false).first();
+print('ET date range:', etCollection.sort('system:time_start').first().get('date'), 'to', etLast.get('date'));
 
 // ============================================================================
 // MODIS MOD17A2H - GROSS PRIMARY PRODUCTIVITY
@@ -84,7 +85,8 @@ function processGPP(image) {
 var gppCollection = mod17.map(processGPP);
 
 print('MOD17A2H GPP composites:', gppCollection.size());
-print('GPP date range:', gppCollection.first().get('date'), 'to', gppCollection.last().get('date'));
+var gppLast = gppCollection.sort('system:time_start', false).first();
+print('GPP date range:', gppCollection.sort('system:time_start').first().get('date'), 'to', gppLast.get('date'));
 
 // ============================================================================
 // CALCULATE WATER USE EFFICIENCY (WUE)
