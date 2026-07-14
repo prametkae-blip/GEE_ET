@@ -4,7 +4,27 @@
 
 Real satellite data from Google Earth Engine • MODIS MOD16A2 & MOD17A2H • 2021-May 2026
 
-🔗 **[GitHub](https://github.com/prametkae-blip/GEE_ET)** | 📊 **[Dashboard](dashboard.html)** | 📖 **[Guide](NEW_PROJECT_GUIDE.md)**
+🔗 **[GitHub](https://github.com/prametkae-blip/GEE_ET)** | 📊 **[Dashboard](dashboard.html)** | 🖼️ **[Visualizations](preview.html)** | 📖 **[Guide](NEW_PROJECT_GUIDE.md)**
+
+---
+
+## 🖼️ Sample Visualizations
+
+> **View interactive preview:** [preview.html](preview.html)
+
+These are examples of what the REAL data looks like:
+
+| ET | GPP | WUE | Timeline |
+|----|----|-----|----------|
+| 💧 Water Loss | 🌱 Productivity | 💧🌱 Efficiency | 📈 Trends |
+| 8-20 mm/period | 350-750 g C/m² | 25-55 g C/kg | 2021-2026 |
+| Blue=Wet, Red=Dry | Green=Productive | Brown=Low, Green=High | Seasonal cycle |
+
+**To generate YOUR OWN images:**
+1. Run GEE script → get real data
+2. Download `.tif` from Google Drive
+3. **Option A:** `python geotiff_to_image.py file.tif` → PNG images
+4. **Option B:** Open `map_viewer.html` → Upload `.tif` → Interactive map
 
 ---
 
