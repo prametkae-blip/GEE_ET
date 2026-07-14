@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real Data Map Viewer — Thailand ET, GPP, WUE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: white;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .header h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    .header p {
+      color: #666;
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      background: #0570b0;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      max-width: 1400px;
+      margin: 20px auto;
+      width: 100%;
+      gap: 20px;
+      padding: 0 20px;
+    }
+    #map {
+      flex: 1;
+      min-height: 600px;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      background: #f0f0f0;
+    }
+    .sidebar {
+      width: 300px;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      max-height: calc(100vh - 200px);
+    }
+    .sidebar h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    .control-group {
+      margin-bottom: 15px;
+    }
+    .control-label {
+      font-weight: bold;
+      color: #667eea;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+    select, input[type="file"], button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #764ba2;
+    }
+    .info {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.6;
+    }
+    .legend {
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 12px;
+      margin-top: 15px;
+    }
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .legend-bar {
+      height: 20px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    .legend-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #666;
+    }
+    .status {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+      color: #155724;
+      font-size: 12px;
+    }
+    .footer {
+      background: white;
+      padding: 15px 20px;
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+      margin-top: auto;
+    }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .sidebar { width: 100%; }
+      #map { min-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🗺️ Real Data Map Viewer</h1>
+    <p>Visualize Actual MODIS ET, GPP & WUE Data from GEE</p>
+    <span class="badge">Upload GEE GeoTIFF Export</span>
+  </div>
+
+  <div class="container">
+    <div id="map"></div>
+    <div class="sidebar">
+      <h2>📊 Data Upload</h2>
+
+      <div class="controls">
+        <div class="control-group">
+          <label class="control-label">Upload GeoTIFF</label>
+          <input type="file" id="geotiffInput" accept=".tif,.tiff" />
+          <p style="font-size: 11px; color: #999; margin-top: 5px;">
+            From GEE export: Thailand_ET_GPP_*.tif
+          </p>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Select Band</label>
+          <select id="bandSelect">
+            <option value="1">Band 1 - ET (Evapotranspiration)</option>
+            <option value="2">Band 2 - GPP (Gross Primary Productivity)</option>
+            <option value="wue">Band 3 - WUE (Water Use Efficiency)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Colormap</label>
+          <select id="colormapSelect">
+            <option value="viridis">Viridis</option>
+            <option value="jet">Jet</option>
+            <option value="RdYlGn">Red-Yellow-Green</option>
+            <option value="Blues">Blues</option>
+            <option value="Greens">Greens</option>
+            <option value="gray">Grayscale</option>
+          </select>
+        </div>
+
+        <button id="loadButton">Load & Visualize</button>
+      </div>
+
+      <div class="info">
+        <strong>📝 Instructions:</strong><br>
+        1. Run GEE script in your account<br>
+        2. Download GeoTIFF from Drive<br>
+        3. Upload here<br>
+        4. View on interactive map
+      </div>
+
+      <div class="legend" id="legend" style="display: none;">
+        <div class="legend-title" id="legendTitle">ET (mm)</div>
+        <div class="legend-bar" id="legendBar"></div>
+        <div class="legend-range">
+          <span id="legendMin">Min</span>
+          <span id="legendMax">Max</span>
+        </div>
+      </div>
+
+      <div class="status">
+        ✅ <strong>Ready</strong><br>
+        Upload a GEE export to visualize real data
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>
+      <strong>Real Data Map Viewer</strong> | MODIS Satellite Data from Google Earth Engine<br>
+      Works with GeoTIFF exports from: gee_monthly_analysis_2021_2026.js<br>
+      <a href="https://github.com/prametkae-blip/GEE_ET" target="_blank">View on GitHub</a>
+    </p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tiff.js/1.0.2/tiff.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/geotiff/1.1.13/geotiff.min.js"></script>
+  <script>
+    let map;
+    let currentLayer = null;
+    let geotiffData = null;
+
+    // Initialize map
+    function initMap() {
+      map = L.map('map').setView([15.87, 100.99], 6);
+
+      const baseLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        minZoom: 2,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '© Google'
+      }).addTo(map);
+
+      // Add Thailand boundary (simple)
+      L.circle([15.87, 100.99], {
+        radius: 200000,
+        color: 'red',
+        fill: false,
+        weight: 2,
+        dashArray: '5,5'
+      }).addTo(map);
+    }
+
+    // Load and process GeoTIFF
+    document.getElementById('geotiffInput').addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+        const image = await tiff.getImage();
+
+        // Read raster data
+        const rasterData = await image.readRasters();
+        geotiffData = {
+          width: image.getWidth(),
+          height: image.getHeight(),
+          data: rasterData,
+          image: image
+        };
+
+        document.getElementById('loadButton').style.background = '#28a745';
+        document.getElementById('loadButton').textContent = '✅ File Loaded - Click to Visualize';
+
+      } catch (error) {
+        alert('❌ Error loading file: ' + error.message);
+      }
+    });
+
+    // Visualize data
+    document.getElementById('loadButton').addEventListener('click', function() {
+      if (!geotiffData) {
+        alert('❌ Please upload a GeoTIFF file first');
+        return;
+      }
+
+      const band = parseInt(document.getElementById('bandSelect').value) || 1;
+      const colormap = document.getElementById('colormapSelect').value;
+
+      // Get band data
+      let bandData;
+      if (band === 3) {
+        // Calculate WUE
+        const et = geotiffData.data[0];
+        const gpp = geotiffData.data[1];
+        bandData = gpp.map((v, i) => et[i] > 0.1 ? v / et[i] : 0);
+      } else {
+        bandData = geotiffData.data[band - 1];
+      }
+
+      // Create canvas visualization
+      const canvas = createVisualization(bandData, geotiffData.width, geotiffData.height, colormap);
+
+      // Add to map as image overlay
+      if (currentLayer) {
+        map.removeLayer(currentLayer);
+      }
+
+      // Get bounds from GeoTIFF
+      const bbox = geotiffData.image.getBoundingBox();
+      const bounds = [[bbox[1], bbox[0]], [bbox[3], bbox[2]]];
+
+      currentLayer = L.imageOverlay(canvas.toDataURL(), bounds).addTo(map);
+      map.fitBounds(bounds);
+
+      // Update legend
+      updateLegend(bandData, band);
+
+      alert('✅ Data visualized on map!');
+    });
+
+    function createVisualization(data, width, height, colormap) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      // Normalize data
+      const min = Math.min(...data.filter(d => d > 0));
+      const max = Math.max(...data);
+
+      const imageData = ctx.createImageData(width, height);
+
+      for (let i = 0; i < data.length; i++) {
+        const normalized = (data[i] - min) / (max - min);
+        const [r, g, b] = getColor(normalized, colormap);
+
+        imageData.data[i * 4] = r;
+        imageData.data[i * 4 + 1] = g;
+        imageData.data[i * 4 + 2] = b;
+        imageData.data[i * 4 + 3] = 255;
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      return canvas;
+    }
+
+    function getColor(value, colormap) {
+      const colormaps = {
+        viridis: viridisColormap,
+        jet: jetColormap,
+        RdYlGn: rdylgnColormap,
+        Blues: bluesColormap,
+        Greens: greensColormap,
+        gray: grayColormap
+      };
+
+      return (colormaps[colormap] || viridisColormap)(value);
+    }
+
+    // Simple colormaps
+    const viridisColormap = (v) => [
+      Math.floor(68 + (29 * v)),
+      Math.floor(1 + (69 * v)),
+      Math.floor(84 + (86 * v))
+    ];
+
+    const jetColormap = (v) => {
+      if (v < 0.25) return [0, 0, Math.floor(255 * (v / 0.25))];
+      if (v < 0.5) return [0, Math.floor(255 * ((v - 0.25) / 0.25)), 255];
+      if (v < 0.75) return [Math.floor(255 * ((v - 0.5) / 0.25)), 255, Math.floor(255 * (1 - (v - 0.5) / 0.25))];
+      return [255, Math.floor(255 * (1 - (v - 0.75) / 0.25)), 0];
+    };
+
+    const rdylgnColormap = (v) => {
+      if (v < 0.5) {
+        const t = v / 0.5;
+        return [255, Math.floor(255 * t), 0];
+      } else {
+        const t = (v - 0.5) / 0.5;
+        return [Math.floor(255 * (1 - t)), 255, 0];
+      }
+    };
+
+    const bluesColormap = (v) => [
+      Math.floor(255 * (1 - v * 0.75)),
+      Math.floor(200 + (55 * v)),
+      255
+    ];
+
+    const greensColormap = (v) => [
+      Math.floor(255 * (1 - v)),
+      255,
+      Math.floor(255 * (1 - v))
+    ];
+
+    const grayColormap = (v) => {
+      const g = Math.floor(255 * v);
+      return [g, g, g];
+    };
+
+    function updateLegend(data, band) {
+      const min = Math.min(...data.filter(d => d > 0));
+      const max = Math.max(...data);
+      const mean = (data.reduce((a, b) => a + b) / data.length).toFixed(2);
+
+      const labels = [
+        'ET (mm)',
+        'GPP (g C/m²)',
+        'WUE (g C/kg)'
+      ];
+
+      document.getElementById('legendTitle').textContent = labels[band - 1];
+      document.getElementById('legendMin').textContent = min.toFixed(1);
+      document.getElementById('legendMax').textContent = max.toFixed(1);
+      document.getElementById('legend').style.display = 'block';
+    }
+
+    // Initialize
+    initMap();
+  </script>
+</body>
+</html>
