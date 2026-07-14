@@ -28,12 +28,11 @@ var era5 = ee.ImageCollection('ECMWF/ERA5/DAILY')
 // Calculate daily ET (latent heat = 2.45 MJ/kg, so ET_mm ≈ LE * 0.408)
 var et_daily = era5.map(function(image) {
   return image.multiply(1000) // Convert kg/m² to mm
-    .clip(thailand)
-    .rename('ET');
+    .clip(thailand);
 });
 
 // Get latest ET composite (or median if needed)
-var et_composite = et_daily.median();
+var et_composite = et_daily.median().rename('ET');
 
 // ===== GROSS PRIMARY PRODUCTIVITY (GPP) =====
 // Using MODIS NPP as proxy for GPP (GPP ≈ NPP / 0.5 approximately)
@@ -46,18 +45,15 @@ var modis_npp = ee.ImageCollection('MODIS/006/MOD17A2H')
 var gpp_daily = modis_npp.map(function(image) {
   return image.multiply(0.0001) // Scale factor
     .divide(8) // 8-day to daily
-    .clip(thailand)
-    .rename('GPP');
+    .clip(thailand);
 });
 
-var gpp_composite = gpp_daily.median();
+var gpp_composite = gpp_daily.median().rename('GPP');
 
 // ===== WATER USE EFFICIENCY (WUE) =====
 // WUE = GPP / ET (g C / kg H2O)
 // To make WUE comparable: normalize to reasonable range
-var et_band = et_composite.select('ET');
-var gpp_band = gpp_composite.select('GPP');
-var wue_composite = gpp_band.divide(et_band.add(0.1)) // Avoid division by zero
+var wue_composite = gpp_composite.divide(et_composite.add(0.1)) // Avoid division by zero
   .multiply(100) // Scale for visibility
   .rename('WUE');
 
